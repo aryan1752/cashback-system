@@ -120,6 +120,10 @@
     <label>Base URL (your deployed frontend)</label>
     <input id="baseUrl" value="https://cashback-system-o483.vercel.app/" />
   </div>
+  <div>
+    <label>API URL (your backend server)</label>
+    <input id="apiUrl" value="https://cashback-system-o483.vercel.app" />
+  </div>
   <div class="row">
     <div>
       <label>Number of cards</label>
@@ -238,7 +242,8 @@ async function seedToMongo() {
   setStatus("Seeding tokens into MongoDB…", "ok");
 
   try {
-    const res = await fetch("/api/seed", {  // relative URL — no CORS issues
+    const apiBase = document.getElementById("apiUrl").value.trim() || window.location.origin;
+    const res = await fetch(`${apiBase.replace(/\/+$/, "")}/api/seed`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -246,8 +251,16 @@ async function seedToMongo() {
       },
       body: JSON.stringify({ cards: allCards }),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Seed failed");
+
+    let data;
+    const text = await res.text();
+    try {
+      data = JSON.parse(text || "{}");
+    } catch (p) {
+      throw new Error(`Server returned invalid JSON (${res.status}): ${text.slice(0, 120)}`);
+    }
+
+    if (!res.ok) throw new Error(data.error || data.message || "Seed failed");
     setStatus(`✓ Seeded successfully — ${data.inserted} new, ${data.skipped} already existed.`, "ok");
   } catch (e) {
     setStatus("Seed failed: " + e.message, "err");
