@@ -5,19 +5,38 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>QR Generator</title>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
-
 <style>
-body { font-family: Arial; padding: 20px; }
-.grid { display: flex; flex-wrap: wrap; gap: 20px; }
+body {
+  font-family: Arial;
+  padding: 20px;
+}
+
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
 .card {
   border: 1px solid #ccc;
   padding: 10px;
-  width: 150px;
+  width: 160px;
   text-align: center;
   border-radius: 10px;
 }
-button { margin-top: 10px; }
+
+img {
+  width: 120px;
+  height: 120px;
+  display: block;
+  margin: 10px auto;
+}
+
+button {
+  margin-top: 10px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
 </style>
 </head>
 
@@ -25,9 +44,11 @@ button { margin-top: 10px; }
 
 <h2>QR Generator</h2>
 
-<input id="baseUrl" value="https://cashback-system-cn6k.vercel.app/" style="width:100%; padding:10px; margin-bottom:10px;" />
+<input id="baseUrl"
+value="https://cashback-system-cn6k.vercel.app/"
+style="width:100%; padding:10px; margin-bottom:10px;" />
 
-<br><br>
+<br>
 
 <button onclick="generate()">Generate QR Codes</button>
 <button onclick="downloadCSV()">Download CSV</button>
@@ -42,8 +63,8 @@ let allCards = [];
 function genToken() {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let t = "";
-  for (let i=0;i<8;i++) {
-    t += chars[Math.floor(Math.random()*chars.length)];
+  for (let i = 0; i < 8; i++) {
+    t += chars[Math.floor(Math.random() * chars.length)];
   }
   return t;
 }
@@ -51,49 +72,56 @@ function genToken() {
 function generate() {
   const base = document.getElementById("baseUrl").value.trim();
   const grid = document.getElementById("grid");
+
   grid.innerHTML = "";
   allCards = [];
 
   for (let i = 0; i < 10; i++) {
+
     const token = genToken();
     const amount = 5;
+
     const url = `${base}?amount=${amount}&token=${token}`;
 
     allCards.push({ token, amount });
 
+    // Create card
     const card = document.createElement("div");
     card.className = "card";
 
-    const canvas = document.createElement("canvas");
+    // Title
+    const title = document.createElement("h3");
+    title.innerText = `₹${amount}`;
+    card.appendChild(title);
 
-    card.innerHTML = `<h3>₹${amount}</h3>`;
-    card.appendChild(canvas);
+    // 🔥 QR IMAGE (API BASED - ALWAYS WORKS)
+    const img = document.createElement("img");
+    img.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(url)}`;
+    card.appendChild(img);
 
+    // Token
     const text = document.createElement("div");
     text.innerText = token;
     card.appendChild(text);
 
+    // Download button
     const btn = document.createElement("button");
     btn.innerText = "Save PNG";
     btn.onclick = () => {
       const link = document.createElement("a");
-      link.href = canvas.toDataURL();
+      link.href = img.src;
       link.download = `QR-${amount}-${token}.png`;
       link.click();
     };
 
     card.appendChild(btn);
     grid.appendChild(card);
-
-    // 🔥 QR render (guaranteed working)
-    QRCode.toCanvas(canvas, url, { width: 120 }, function (error) {
-      if (error) console.error(error);
-    });
   }
 }
 
 function downloadCSV() {
   let csv = "Token,Amount,Used,ClaimedAt,ClaimedBy\n";
+
   allCards.forEach(c => {
     csv += `${c.token},${c.amount},FALSE,,\n`;
   });
