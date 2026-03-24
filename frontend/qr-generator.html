@@ -4,57 +4,162 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>QR Generator</title>
-
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
-body {
-  font-family: Arial;
-  padding: 20px;
-}
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --forest: #1c5c34;
+    --forest-mid: #28834a;
+    --forest-light: #e4f5eb;
+    --gold: #e8960a;
+    --border: #cee5d6;
+    --ink: #0c1a10;
+    --ink-3: #7a9484;
+    --bg: #f0f7f3;
+    --white: #ffffff;
+  }
+  body { font-family: "Instrument Sans", sans-serif; background: var(--bg); color: var(--ink); padding: 28px 20px 60px; }
+  h1 { font-family: "Bricolage Grotesque", sans-serif; font-size: 26px; font-weight: 800; color: var(--forest); margin-bottom: 6px; }
+  .sub { font-size: 13px; color: var(--ink-3); margin-bottom: 24px; }
 
-.grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-}
+  .controls {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    display: grid;
+    gap: 14px;
+    max-width: 640px;
+    margin-bottom: 24px;
+  }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; color: var(--forest-mid); display: block; margin-bottom: 5px; }
+  input, select {
+    width: 100%; padding: 10px 12px; border: 1.5px solid var(--border);
+    border-radius: 8px; font-size: 14px; font-family: "Instrument Sans", sans-serif;
+    background: #f7fcf9; color: var(--ink); outline: none;
+    transition: border-color 0.15s;
+  }
+  input:focus, select:focus { border-color: var(--forest-mid); }
 
-.card {
-  border: 1px solid #ccc;
-  padding: 10px;
-  width: 160px;
-  text-align: center;
-  border-radius: 10px;
-}
+  .seed-section {
+    background: #fff8ec;
+    border: 1.5px solid #f0d080;
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: grid;
+    gap: 8px;
+  }
+  .seed-title { font-size: 12px; font-weight: 600; color: #7a5900; margin-bottom: 2px; }
+  .seed-desc { font-size: 12px; color: #9a7020; line-height: 1.4; }
 
-img {
-  width: 120px;
-  height: 120px;
-  display: block;
-  margin: 10px auto;
-}
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  button {
+    padding: 11px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: "Bricolage Grotesque", sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    transition: background 0.15s, transform 0.1s;
+  }
+  button:active { transform: scale(0.97); }
+  .btn-primary { background: var(--forest); color: #fff; }
+  .btn-primary:hover { background: #153f25; }
+  .btn-secondary { background: var(--forest-light); color: var(--forest); }
+  .btn-secondary:hover { background: #c9edda; }
+  .btn-gold { background: var(--gold); color: #fff; }
+  .btn-gold:hover { background: #c97d08; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
 
-button {
-  margin-top: 10px;
-  padding: 6px 10px;
-  cursor: pointer;
-}
+  .status-bar {
+    font-size: 13px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    display: none;
+    margin-bottom: 16px;
+  }
+  .status-bar.ok { background: var(--forest-light); color: var(--forest); border: 1px solid #a5d9b8; display: block; }
+  .status-bar.err { background: #fdf2f1; color: #c0392b; border: 1px solid #f5c6c3; display: block; }
+
+  .grid { display: flex; flex-wrap: wrap; gap: 16px; max-width: 900px; }
+  .card {
+    border: 1px solid var(--border);
+    padding: 14px;
+    width: 160px;
+    text-align: center;
+    border-radius: 14px;
+    background: var(--white);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+  .card-amount {
+    font-family: "Bricolage Grotesque", sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--forest);
+    background: var(--forest-light);
+    border-radius: 50px;
+    padding: 3px 14px;
+    display: inline-block;
+    margin-bottom: 8px;
+  }
+  img { width: 120px; height: 120px; display: block; margin: 0 auto 8px; border-radius: 6px; }
+  .token { font-family: monospace; font-size: 11px; color: var(--ink-3); letter-spacing: 1px; margin-bottom: 10px; }
+  .save-btn { padding: 6px 14px; font-size: 12px; font-family: "Instrument Sans", sans-serif; font-weight: 600; background: var(--forest-light); color: var(--forest); border: 1px solid #a5d9b8; border-radius: 6px; cursor: pointer; }
+  .save-btn:hover { background: #c9edda; }
 </style>
 </head>
-
 <body>
 
-<h2>QR Generator</h2>
+<h1>QR Card Generator</h1>
+<p class="sub">Generate cashback QR cards and optionally seed them directly into MongoDB.</p>
 
-<input id="baseUrl"
-value="https://cashback-system-cn6k.vercel.app/"
-style="width:100%; padding:10px; margin-bottom:10px;" />
+<div class="controls">
+  <div>
+    <label>Base URL (your deployed frontend)</label>
+    <input id="baseUrl" value="https://cashback-system-cn6k.vercel.app/" />
+  </div>
+  <div class="row">
+    <div>
+      <label>Number of cards</label>
+      <input id="count" type="number" value="10" min="1" max="200" />
+    </div>
+    <div>
+      <label>Cashback Amount (₹)</label>
+      <select id="amountSel">
+        <option value="5">₹5</option>
+        <option value="10">₹10</option>
+        <option value="25" selected>₹25</option>
+        <option value="50">₹50</option>
+        <option value="100">₹100</option>
+      </select>
+    </div>
+  </div>
 
-<br>
+  <div class="seed-section">
+    <div class="seed-title">🔐 Auto-seed into MongoDB (optional)</div>
+    <div class="seed-desc">Fill in your server URL and seed secret to insert generated tokens into MongoDB automatically. Leave blank to only generate QR images + CSV.</div>
+    <div class="row">
+      <div>
+        <label>Server URL</label>
+        <input id="serverUrl" placeholder="https://your-server.com" />
+      </div>
+      <div>
+        <label>Seed Secret (SEED_SECRET env)</label>
+        <input id="seedSecret" type="password" placeholder="your secret key" />
+      </div>
+    </div>
+  </div>
 
-<button onclick="generate()">Generate QR Codes</button>
-<button onclick="downloadCSV()">Download CSV</button>
+  <div class="btn-row">
+    <button class="btn-primary" onclick="generate()">Generate QR Codes</button>
+    <button class="btn-secondary" onclick="downloadCSV()" id="csvBtn" disabled>Download CSV</button>
+    <button class="btn-gold" onclick="seedToMongo()" id="seedBtn" disabled>Seed to MongoDB</button>
+  </div>
+</div>
 
-<br><br>
-
+<div class="status-bar" id="statusBar"></div>
 <div class="grid" id="grid"></div>
 
 <script>
@@ -63,76 +168,107 @@ let allCards = [];
 function genToken() {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let t = "";
-  for (let i = 0; i < 8; i++) {
-    t += chars[Math.floor(Math.random() * chars.length)];
-  }
+  for (let i = 0; i < 8; i++) t += chars[Math.floor(Math.random() * chars.length)];
   return t;
 }
 
 function generate() {
-  const base = document.getElementById("baseUrl").value.trim();
-  const grid = document.getElementById("grid");
+  const base   = document.getElementById("baseUrl").value.trim();
+  const count  = Math.min(200, Math.max(1, parseInt(document.getElementById("count").value) || 10));
+  const amount = document.getElementById("amountSel").value;
+  const grid   = document.getElementById("grid");
 
   grid.innerHTML = "";
   allCards = [];
+  setStatus("", "");
 
-  for (let i = 0; i < 10; i++) {
-
+  for (let i = 0; i < count; i++) {
     const token = genToken();
-    const amount = 5;
-
-    const url = `${base}?amount=${amount}&token=${token}`;
-
+    const url   = `${base}?amount=${amount}&token=${token}`;
     allCards.push({ token, amount });
 
-    // Create card
-    const card = document.createElement("div");
+    const card  = document.createElement("div");
     card.className = "card";
 
-    // Title
-    const title = document.createElement("h3");
-    title.innerText = `₹${amount}`;
-    card.appendChild(title);
+    const badge = document.createElement("div");
+    badge.className = "card-amount";
+    badge.textContent = "₹" + amount;
+    card.appendChild(badge);
 
-    // 🔥 QR IMAGE (API BASED - ALWAYS WORKS)
     const img = document.createElement("img");
     img.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(url)}`;
+    img.alt = token;
     card.appendChild(img);
 
-    // Token
-    const text = document.createElement("div");
-    text.innerText = token;
-    card.appendChild(text);
+    const tok = document.createElement("div");
+    tok.className = "token";
+    tok.textContent = token;
+    card.appendChild(tok);
 
-    // Download button
     const btn = document.createElement("button");
-    btn.innerText = "Save PNG";
+    btn.className = "save-btn";
+    btn.textContent = "Save PNG";
     btn.onclick = () => {
-      const link = document.createElement("a");
-      link.href = img.src;
-      link.download = `QR-${amount}-${token}.png`;
-      link.click();
+      const a = document.createElement("a");
+      a.href = img.src;
+      a.download = `QR-${amount}-${token}.png`;
+      a.click();
     };
-
     card.appendChild(btn);
     grid.appendChild(card);
   }
+
+  document.getElementById("csvBtn").disabled  = false;
+  document.getElementById("seedBtn").disabled = false;
 }
 
 function downloadCSV() {
-  let csv = "Token,Amount,Used,ClaimedAt,ClaimedBy\n";
-
+  if (!allCards.length) return;
+  let csv = "Token,Amount,Used,ClaimedAt,Name,Phone,UPI,Shop\n";
   allCards.forEach(c => {
-    csv += `${c.token},${c.amount},FALSE,,\n`;
+    csv += `${c.token},${c.amount},FALSE,,,,, \n`;
   });
-
-  const blob = new Blob([csv], { type: "text/csv" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
+  const a    = document.createElement("a");
+  a.href     = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
   a.download = "tokens.csv";
   a.click();
 }
-</script>
 
+async function seedToMongo() {
+  const server = document.getElementById("serverUrl").value.trim().replace(/\/$/, "");
+  const secret = document.getElementById("seedSecret").value.trim();
+
+  if (!server) { setStatus("Enter your server URL before seeding.", "err"); return; }
+  if (!secret) { setStatus("Enter your SEED_SECRET.", "err"); return; }
+  if (!allCards.length) { setStatus("Generate cards first.", "err"); return; }
+
+  document.getElementById("seedBtn").disabled = true;
+  setStatus("Seeding tokens into MongoDB…", "ok");
+
+  try {
+    const res  = await fetch(`${server}/api/seed`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-seed-secret": secret,
+      },
+      body: JSON.stringify({ cards: allCards }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Seed failed");
+    setStatus(`✓ Seeded successfully — ${data.inserted} new, ${data.skipped} already existed.`, "ok");
+  } catch (e) {
+    setStatus("Seed failed: " + e.message, "err");
+  } finally {
+    document.getElementById("seedBtn").disabled = false;
+  }
+}
+
+function setStatus(msg, type) {
+  const el = document.getElementById("statusBar");
+  el.textContent = msg;
+  el.className   = "status-bar" + (type ? " " + type : "");
+}
+</script>
 </body>
 </html>
