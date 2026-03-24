@@ -139,16 +139,10 @@
 
   <div class="seed-section">
     <div class="seed-title">🔐 Auto-seed into MongoDB (optional)</div>
-    <div class="seed-desc">Fill in your server URL and seed secret to insert generated tokens into MongoDB automatically. Leave blank to only generate QR images + CSV.</div>
-    <div class="row">
-      <div>
-        <label>Server URL</label>
-        <input id="serverUrl" placeholder="https://your-server.com" />
-      </div>
-      <div>
-        <label>Seed Secret (SEED_SECRET env)</label>
-        <input id="seedSecret" type="password" placeholder="your secret key" />
-      </div>
+    <div class="seed-desc">Enter your seed secret to insert generated tokens into MongoDB automatically. Leave blank to only generate QR images + CSV.</div>
+    <div>
+      <label>Seed Secret (SEED_SECRET env)</label>
+      <input id="seedSecret" type="password" placeholder="your secret key" />
     </div>
   </div>
 
@@ -235,10 +229,8 @@ function downloadCSV() {
 }
 
 async function seedToMongo() {
-  const server = document.getElementById("serverUrl").value.trim().replace(/\/$/, "");
   const secret = document.getElementById("seedSecret").value.trim();
 
-  if (!server) { setStatus("Enter your server URL before seeding.", "err"); return; }
   if (!secret) { setStatus("Enter your SEED_SECRET.", "err"); return; }
   if (!allCards.length) { setStatus("Generate cards first.", "err"); return; }
 
@@ -246,7 +238,7 @@ async function seedToMongo() {
   setStatus("Seeding tokens into MongoDB…", "ok");
 
   try {
-    const res  = await fetch(`${server}/api/seed`, {
+    const res = await fetch("/api/seed", {  // relative URL — no CORS issues
       method: "POST",
       headers: {
         "Content-Type": "application/json",
