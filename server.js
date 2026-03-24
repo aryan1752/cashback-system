@@ -9,6 +9,14 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // ─── Middleware ───────────────────────────────────────────────
+app.use(express.json());
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, x-seed-secret");
+  if (req.method === "OPTIONS") return res.sendStatus(200);
+  next();
+});
 app.use(express.static(path.join(__dirname, "frontend")));
 
 // ─── DB ──────────────────────────────────────────────────────
@@ -130,17 +138,6 @@ app.post("/api/seed", async (req, res) => {
     return res.status(500).json({ error: err.message });
   }
 });
-
-// ─── CORS Middleware ─────────────────────────────────────────
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type, x-seed-secret");
-  if (req.method === "OPTIONS") return res.sendStatus(200);
-  next();
-});
-
-app.use(express.json());
 
 // ─── Catch-all → index.html ──────────────────────────────
 app.get("*", (req, res) => {
